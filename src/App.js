@@ -10,21 +10,9 @@ import Badge from "@material-ui/core/Badge";
 
 import TabPanel from "./components/TabPanel";
 import Listview from "./components/Listview";
+import { dbConn, insertMap, showTable } from "./websql";
 
-const a11yProps = index => ({
-  id: `nav-tab-${index}`,
-  "aria-controls": `nav-tabpanel-${index}`
-});
-
-const useStyles = makeStyles(theme => ({
-  root: {
-    flexGrow: 1,
-    backgroundColor: theme.palette.background.paper
-  },
-  margin: {
-    margin: theme.spacing(2)
-  }
-}));
+let webDB = dbConn();
 
 const favList = [
   { title: "favList 1", body: "Jan 9, 2014" },
@@ -45,6 +33,24 @@ const articleList = [
   { title: "article 9", body: "Jan 9, 2014" },
   { title: "article 10", body: "Jan 9, 2014" }
 ];
+
+showTable(webDB, "articles");
+// console.log(articleList);
+
+const a11yProps = index => ({
+  id: `nav-tab-${index}`,
+  "aria-controls": `nav-tabpanel-${index}`
+});
+
+const useStyles = makeStyles(theme => ({
+  root: {
+    flexGrow: 1,
+    backgroundColor: theme.palette.background.paper
+  },
+  margin: {
+    margin: theme.spacing(2)
+  }
+}));
 
 const App = () => {
   const classes = useStyles();
