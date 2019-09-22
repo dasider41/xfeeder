@@ -26,7 +26,6 @@ const initateTables = db => {
 
 const insertMap = (db, table, array) => {
   const query = buildQuery(table, array[0]);
-  // console.log(query);
   array.map(item => {
     db.transaction(tx => {
       tx.executeSql(query, Object.values(item));
@@ -35,9 +34,15 @@ const insertMap = (db, table, array) => {
 };
 
 const showTable = (db, table) => {
-  db.transaction(tx => {
-    tx.executeSql(`SELECT * FROM ${table}`, [], (statement, result) =>
-      console.log(result.rows)
+  return new Promise((resolve, reject) => {
+    db.transaction(tx =>
+      tx.executeSql(`SELECT * FROM ${table}`, [], (transaction, result) => {
+        let response = [];
+        for (var i = 0; i < result.rows.length; i++) {
+          response.push(result.rows.item(i));
+        }
+        resolve(response);
+      })
     );
   });
 };
