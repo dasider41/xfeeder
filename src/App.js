@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import AppBar from "@material-ui/core/AppBar";
 import Tabs from "@material-ui/core/Tabs";
@@ -6,58 +6,62 @@ import Tab from "@material-ui/core/Tab";
 import SubjectIcon from "@material-ui/icons/Subject";
 import FavoriteIcon from "@material-ui/icons/Favorite";
 import SettingIcon from "@material-ui/icons/Settings";
-import Badge from "@material-ui/core/Badge";
 
+import BadgeIcon from "./components/BadgeIcon";
 import TabPanel from "./components/TabPanel";
 import Listview from "./components/Listview";
-import { dbConn, insertMap, showTable } from "./websql";
 
-let webDB = dbConn();
+import { dbConn, showTable } from "./websql";
 
-const favList = [
-  { title: "favList 1", body: "Jan 9, 2014" },
-  { title: "favList 2", body: "Jan 9, 2014" },
-  { title: "favList 3", body: "Jan 9, 2014" },
-  { title: "favList 4", body: "Jan 9, 2014" }
-];
-
-const articleList = [
-  { title: "article 1", body: "Jan 9, 2014" },
-  { title: "article 2", body: "Jan 9, 2014" },
-  { title: "article 3", body: "Jan 9, 2014" },
-  { title: "article 4", body: "Jan 9, 2014" },
-  { title: "article 5", body: "Jan 9, 2014" },
-  { title: "article 6", body: "Jan 9, 2014" },
-  { title: "article 7", body: "Jan 9, 2014" },
-  { title: "article 8", body: "Jan 9, 2014" },
-  { title: "article 9", body: "Jan 9, 2014" },
-  { title: "article 10", body: "Jan 9, 2014" }
-];
-
-showTable(webDB, "articles");
-// console.log(articleList);
+const webDB = dbConn();
 
 const a11yProps = index => ({
   id: `nav-tab-${index}`,
   "aria-controls": `nav-tabpanel-${index}`
 });
 
+const FavoriteBadgeIcon = props => {
+  const { count } = props;
+  return <BadgeIcon count={count} icon={<FavoriteIcon />} />;
+};
+
+const ArticleBadgeIcon = props => {
+  const { count } = props;
+  return <BadgeIcon count={count} icon={<SubjectIcon />} />;
+};
+
 const useStyles = makeStyles(theme => ({
   root: {
     flexGrow: 1,
     backgroundColor: theme.palette.background.paper
-  },
-  margin: {
-    margin: theme.spacing(2)
   }
 }));
 
 const App = () => {
   const classes = useStyles();
-  const [value, setValue] = React.useState(0);
+  const [value, setValue] = useState(0);
+  const [favorites, setFavorites] = useState([]);
+  const [articles, setArticlse] = useState([]);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
+  };
+
+  useEffect(() => {
+    loadFavotites();
+    loadArticlse();
+  });
+
+  const loadFavotites = () => {
+    showTable(webDB, "subscription").then(res => {
+      setFavorites(res);
+    });
+  };
+
+  const loadArticlse = () => {
+    showTable(webDB, "articles").then(res => {
+      setArticlse(res);
+    });
   };
 
   return (
@@ -70,37 +74,21 @@ const App = () => {
           aria-label="nav tabs example"
         >
           <Tab
-            icon={
-              <Badge
-                className={classes.margin}
-                badgeContent={favList.length}
-                color="secondary"
-              >
-                <FavoriteIcon />
-              </Badge>
-            }
+            icon={<FavoriteBadgeIcon count={favorites.length || 0} />}
             {...a11yProps(0)}
           />
           <Tab
-            icon={
-              <Badge
-                className={classes.margin}
-                badgeContent={articleList.length}
-                color="secondary"
-              >
-                <SubjectIcon />
-              </Badge>
-            }
+            icon={<ArticleBadgeIcon count={articles.length || 0} />}
             {...a11yProps(1)}
           />
           <Tab icon={<SettingIcon />} {...a11yProps(2)} />
         </Tabs>
       </AppBar>
       <TabPanel title="Favorite List" value={value} index={0}>
-        <Listview data={favList} />
+        <Listview data={favorites} />
       </TabPanel>
       <TabPanel title="Articles" value={value} index={1}>
-        <Listview data={articleList} />
+        <Listview data={articles} />
       </TabPanel>
       <TabPanel title="Setting" value={value} index={2}></TabPanel>
     </div>
