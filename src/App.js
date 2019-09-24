@@ -11,10 +11,10 @@ import BadgeIcon from "./components/BadgeIcon";
 import TabPanel from "./components/TabPanel";
 import Listview from "./components/Listview";
 
-import { dbConn, showTable } from "./websql";
+import { dbConn, initateTables, showTable } from "./websql";
 
 const webDB = dbConn();
-
+initateTables(webDB);
 const a11yProps = index => ({
   id: `nav-tab-${index}`,
   "aria-controls": `nav-tabpanel-${index}`
@@ -74,21 +74,21 @@ const App = () => {
           aria-label="nav tabs example"
         >
           <Tab
-            icon={<FavoriteBadgeIcon count={favorites.length || 0} />}
-            {...a11yProps(0)}
-          />
-          <Tab
             icon={<ArticleBadgeIcon count={articles.length || 0} />}
             {...a11yProps(1)}
+          />
+          <Tab
+            icon={<FavoriteBadgeIcon count={favorites.length || 0} />}
+            {...a11yProps(0)}
           />
           <Tab icon={<SettingIcon />} {...a11yProps(2)} />
         </Tabs>
       </AppBar>
-      <TabPanel title="Favorite List" value={value} index={0}>
-        <Listview data={favorites} />
-      </TabPanel>
-      <TabPanel title="Articles" value={value} index={1}>
+      <TabPanel title="Articles" value={value} index={0}>
         <Listview data={articles} />
+      </TabPanel>
+      <TabPanel title="Favorite List" value={value} index={1}>
+        <Listview data={favorites} />
       </TabPanel>
       <TabPanel title="Setting" value={value} index={2}></TabPanel>
     </div>
