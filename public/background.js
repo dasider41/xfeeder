@@ -1,53 +1,97 @@
 chrome.runtime.onInstalled.addListener(() => {
-  let db = dbConn();
+  const DURATION = 1; // 1 min
+  const db = dbConn();
+
   // initate default tables
   initateTables(db);
-
   console.log("onInstalled...");
+
   getFeeds(db);
-  chrome.alarms.create("refresh", { periodInMinutes: 1 });
+
+  // create an schedule
+  chrome.alarms.create("refresh", { periodInMinutes: DURATION });
 });
 
 chrome.alarms.onAlarm.addListener(alarm => {
   console.log(alarm.name); // refresh
-  let db = dbConn();
+  const db = dbConn();
   getFeeds(db);
 });
 
-const getFeeds = db => {
+const getFeeds = async db => {
   console.log("Http request");
   const url =
     "https://www.nzkoreapost.com/bbs/rss.php?bo_table=market_buynsell";
-  fetch(url)
-    .then(r => r.text())
-    .then(result => {
-      const domParser = new DOMParser();
-      const xmlParsed = domParser.parseFromString(result, "text/xml");
-      xmlParsed.querySelectorAll("item").forEach(item => {
-        console.log(item);
-        let objFeed = parsingItem(item);
-        duplicateArticle(db, "articles", [objFeed.link]).then(res => {
-          console.log(res);
-          if (res <= 0) {
-            console.log("update new record");
-            const query = buildQuery("articles", objFeed);
-            db.transaction(tx => {
-              tx.executeSql(query, Object.values(objFeed));
-            });
-          }
-        });
-      });
-    });
+  const response = await fetch(url);
+  const result = await response.text();
+  const domParser = new DOMParser();
+  const xmlParsed = domParser.parseFromString(result, "text/xml");
+  const feeds = [];
+  xmlParsed.querySelectorAll("item").forEach((item, idx) => {
+    feeds[idx] = parsingItem(item);
+  });
+  await Promise.all(
+    feeds.map(async feed => {
+      const cntDuplicate = await countDuplicateArticle(db, "articles", [
+        feed.link
+      ]);
+      console.log(cntDuplicate);
+      if (cntDuplicate <= 0) {
+        newArticle(db, feed);
+      }
+    })
+  );
+  console.log("update done");
+  updateBadge(db);
+};
+
+const newArticle = (db, object) => {
+  console.log("update new record");
+  const query = buildQuery("articles", object);
+  db.transaction(tx => {
+    tx.executeSql(query, Object.values(object));
+  });
+};
+
+const updateBadge = db => {
+  console.log("updateBadge");
+  db.transaction(tx =>
+    tx.executeSql(
+      `SELECT count(*) as total FROM articles`,
+      [],
+      (transaction, result) => {
+        console.log(result);
+        const badgeCount = result.rows[0].total;
+        let badgeText = "";
+        if (badgeCount > 0) {
+          badgeText = badgeCount.toString();
+        }
+        if (badgeCount > 99) {
+          badgeText = "99+";
+        }
+        chrome.browserAction.setBadgeText({ text: badgeText });
+      }
+    )
+  );
 };
 
 const parsingItem = item => {
+  const formatDate = str => {
+    const strDate = new Date(str);
+    return strDate
+      .toISOString()
+      .substr(0, 10)
+      .concat(" ")
+      .concat(strDate.toTimeString().substr(0, 8));
+  };
   let title = item.querySelector("title").textContent;
   let link = item.querySelector("link").textContent;
   let date = item.getElementsByTagNameNS(
     "http://purl.org/dc/elements/1.1/",
     "date"
   )[0].textContent;
-  return { title: title, link: link, date: date };
+
+  return { title: title, link: link, date: formatDate(date) };
 };
 
 // TODO :: refactory by package
@@ -76,7 +120,7 @@ const initateTables = db => {
   console.log("init table");
   db.transaction(tx => {
     const queries = [
-      "CREATE TABLE IF NOT EXISTS articles (id INTEGER PRIMARY KEY ASC, title TEXT, link TEXT, date TEXT)"
+      "CREATE TABLE IF NOT EXISTS articles (id INTEGER PRIMARY KEY ASC, title TEXT, link TEXT, date DATETIME)"
       //   "CREATE TABLE IF NOT EXISTS subscription (id INTEGER PRIMARY KEY ASC, title TEXT, body TEXT)"
     ];
     queries.map(query => {
@@ -85,14 +129,14 @@ const initateTables = db => {
   });
 };
 
-const duplicateArticle = (db, table, condition) => {
+const countDuplicateArticle = (db, table, condition) => {
   return new Promise((resolve, reject) => {
     db.transaction(tx =>
       tx.executeSql(
         `SELECT count(*) as count FROM ${table} Where link = ?`,
         condition,
         (transaction, result) => {
-          console.log(result);
+          // console.log(result);
           resolve(result.rows[0].count);
         }
       )
