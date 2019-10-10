@@ -1,23 +1,23 @@
-import React, { useState, useEffect } from "react";
-import { makeStyles } from "@material-ui/core/styles";
-import AppBar from "@material-ui/core/AppBar";
-import Tabs from "@material-ui/core/Tabs";
-import Tab from "@material-ui/core/Tab";
-import SubjectIcon from "@material-ui/icons/Subject";
-import FavoriteIcon from "@material-ui/icons/Favorite";
-import SettingIcon from "@material-ui/icons/Settings";
+import React, { useState, useEffect } from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import AppBar from '@material-ui/core/AppBar';
+import Tabs from '@material-ui/core/Tabs';
+import Tab from '@material-ui/core/Tab';
+import SubjectIcon from '@material-ui/icons/Subject';
+import FavoriteIcon from '@material-ui/icons/Favorite';
+import SettingIcon from '@material-ui/icons/Settings';
 
-import BadgeIcon from "./components/BadgeIcon";
-import TabPanel from "./components/TabPanel";
-import Listview from "./components/Listview";
+import BadgeIcon from './components/BadgeIcon';
+import TabPanel from './components/TabPanel';
+import Listview from './components/Listview';
 
-import { dbConn, initateTables, showTable } from "./websql";
+import { dbConn, initateTables, showTable } from './websql';
 
 const webDB = dbConn();
 initateTables(webDB);
 const a11yProps = index => ({
   id: `nav-tab-${index}`,
-  "aria-controls": `nav-tabpanel-${index}`
+  'aria-controls': `nav-tabpanel-${index}`,
 });
 
 const FavoriteBadgeIcon = props => {
@@ -26,6 +26,7 @@ const FavoriteBadgeIcon = props => {
 };
 
 const ArticleBadgeIcon = props => {
+  // eslint-disable-next-line react/prop-types
   const { count } = props;
   return <BadgeIcon count={count} icon={<SubjectIcon />} />;
 };
@@ -33,8 +34,8 @@ const ArticleBadgeIcon = props => {
 const useStyles = makeStyles(theme => ({
   root: {
     flexGrow: 1,
-    backgroundColor: theme.palette.background.paper
-  }
+    backgroundColor: theme.palette.background.paper,
+  },
 }));
 
 const App = () => {
@@ -53,13 +54,13 @@ const App = () => {
   });
 
   const loadFavotites = () => {
-    showTable(webDB, "subscription").then(res => {
+    showTable(webDB, 'subscription').then(res => {
       setFavorites(res);
     });
   };
 
   const loadArticlse = () => {
-    showTable(webDB, "articles").then(res => {
+    showTable(webDB, 'articles').then(res => {
       setArticlse(res);
     });
   };
@@ -90,7 +91,7 @@ const App = () => {
       <TabPanel title="Favorite List" value={value} index={1}>
         <Listview data={favorites} />
       </TabPanel>
-      <TabPanel title="Setting" value={value} index={2}></TabPanel>
+      <TabPanel title="Setting" value={value} index={2} />
     </div>
   );
 };
