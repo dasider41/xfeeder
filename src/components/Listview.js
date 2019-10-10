@@ -1,21 +1,26 @@
-import React from "react";
-import PropTypes from "prop-types";
-import List from "@material-ui/core/List";
-import ListItemLink from "./ListItemLink";
+import React from 'react';
+import PropTypes from 'prop-types';
+import List from '@material-ui/core/List';
+import ListItemLink from './ListItemLink';
 
 const Listview = props => {
   const { data } = props;
   return (
     <List component="nav" aria-label="list">
       {data.map((item, idx) => (
-        <ListItemLink key={idx} title={item.title} body={item.body} url={item.link} />
+        <ListItemLink
+          key={idx}
+          title={item.title}
+          date={item.date}
+          url={item.link}
+        />
       ))}
     </List>
   );
 };
 
 Listview.propTypes = {
-  data: PropTypes.array
+  data: PropTypes.array,
 };
 
 export default Listview;
