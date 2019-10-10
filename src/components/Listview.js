@@ -8,7 +8,7 @@ const Listview = props => {
   return (
     <List component="nav" aria-label="list">
       {data.map((item, idx) => (
-        <ListItemLink key={idx} title={item.title} body={item.body} />
+        <ListItemLink key={idx} title={item.title} body={item.body} url={item.link} />
       ))}
     </List>
   );

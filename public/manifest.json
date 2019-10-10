@@ -13,7 +13,7 @@
     "48": "icon.png",
     "128": "icon.png"
   },
-  "permissions": ["<all_urls>", "http://*/*", "https://*/*", "alarms"],
+  "permissions": ["<all_urls>", "http://*/*", "https://*/*", "alarms", "tabs"],
   "background": {
     "scripts": ["background.js"],
     "persistent": false
